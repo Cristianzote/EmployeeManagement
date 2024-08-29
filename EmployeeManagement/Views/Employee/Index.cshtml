@@ -1,0 +1,161 @@
+﻿@{
+    ViewBag.Title = "Employee";
+}
+
+<main>
+    <section class="row" aria-labelledby="aspnetTitle">
+        <h1 id="title">ASP.NET</h1>
+        <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
+        <p><a href="https://asp.net" class="btn btn-primary btn-md">Learn more &raquo;</a></p>
+    </section>
+
+    @* Table *@
+    <table class="table-hover table">
+
+        @* Headers *@
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Position</th>
+                <th>Office</th>
+                <th>Salary</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        @* Employee content *@
+        <tbody id="employeeTableBody">
+            <tr>
+                <td colspan="6">
+                    <div class="spinner-border text-primary" role="status">
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+
+    <div class="row">
+        <section class="col-md-4" aria-labelledby="gettingStartedTitle">
+            <h2 id="gettingStartedTitle">Getting started</h2>
+            <p>
+                ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
+                enables a clean separation of concerns and gives you full control over markup
+                for enjoyable, agile development.
+            </p>
+            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
+        </section>
+        <section class="col-md-4" aria-labelledby="librariesTitle">
+            <h2 id="librariesTitle">Get more libraries</h2>
+            <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
+            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
+        </section>
+        <section class="col-md-4" aria-labelledby="hostingTitle">
+            <h2 id="hostingTitle">Web Hosting</h2>
+            <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
+            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
+        </section>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            loadEmployees();
+
+            // Load employees
+            function loadEmployees() {
+                $.ajax({
+                    url: '@Url.Action("GetEmployees", "Employee")',
+                    type: 'GET',
+                    dataType: 'json',
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error('Error: ' + textStatus, errorThrown);
+                        alert('Ocurrió un error: ' + textStatus);
+                    },
+                    beforeSend: function () {
+
+                        console.log("Before")
+                        let rows = '<tr><td colspan="6">' + document.getElementById("spinner").innerHTML + '</td></tr>';
+                        $('#employeeTableBody').html(rows);
+
+                    },
+                    success: function (data) {
+                        var rows = '';
+                        $.each(data, function (i, employee) {
+                            rows += '<tr>';
+                            rows += '<td>' + employee.Id + '</td>';
+                            rows += '<td>' + employee.Name + '</td>';
+                            rows += '<td>' + employee.Position + '</td>';
+                            rows += '<td>' + employee.Office + '</td>';
+                            rows += '<td>' + employee.Salary + '</td>';
+                            rows += '<td><button class="btn btn-sm btn-primary editBtn" data-id="' + employee.Id + '">Edit</button> <button class="btn btn-sm btn-danger deleteBtn" data-id="' + employee.Id + '">Delete</button></td>';
+                            rows += '</tr>';
+                        });
+                        $('#employeeTableBody').html(rows);
+                    }
+                });
+            }
+
+            // Add employee button click
+            $('#addEmployeeBtn').click(function () {
+                $('#employeeForm')[0].reset();
+                $('#employeeId').val('');
+                $('#employeeModal').modal('show');
+            });
+
+            // Add employee button click
+            $('#refreshEmployeeBtn').click(function () {
+                $('#employeeForm')[0].reset();
+                $('#employeeId').val('');
+                loadEmployees()
+            });
+
+            // Edit employee button click
+            $(document).on('click', '.editBtn', function () {
+                var id = $(this).data('id');
+                $.ajax({
+                    url: '@Url.Action("GetEmployeeById", "Employee")/' + id,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        $('#employeeId').val(data.Id);
+                        $('#employeeName').val(data.Name);
+                        $('#employeePosition').val(data.Position);
+                        $('#employeeOffice').val(data.Office);
+                        $('#employeeSalary').val(data.Salary);
+                        $('#employeeModal').modal('show');
+                    }
+                });
+            });
+
+            // Delete employee button click
+            $(document).on('click', '.deleteBtn', function () {
+                if (confirm('Are you sure to delete this employee?')) {
+                    var id = $(this).data('id');
+                    $.ajax({
+                        url: '@Url.Action("DeleteEmployee", "Employee")/' + id,
+                        type: 'POST',
+                        success: function (data) {
+                            loadEmployees();
+                        }
+                    });
+                }
+            });
+
+            // Form submit
+            $('#employeeForm').submit(function (e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
+                $.ajax({
+                    url: $('#employeeId').val() ? '@Url.Action("UpdateEmployee", "Employee")' : '@Url.Action("AddEmployee", "Employee")',
+                    type: 'POST',
+                    data: formData,
+                    success: function (data) {
+                        $('#employeeModal').modal('hide');
+                        loadEmployees();
+                    }
+                });
+            });
+        });
+    </script>
+</main>
