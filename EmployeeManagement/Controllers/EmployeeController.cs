@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EmployeeManagement.Models;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -18,18 +19,45 @@ namespace EmployeeManagement.Controllers
 
         public JsonResult GetEmployees()
         {
-            var employees = db.Employees.ToList();
-            return Json(employees);
+            try
+            {
+                List<Employee> employees = db.Employees.ToList();
+                return Json(employees, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                // Return the exception message for debugging
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
         }
 
         [HttpPost]
-        public JsonResult UpdateEmployee(EmployeeController employee)
+        public JsonResult AddEmployee(Employee employee)
+        {
+            db.Employees.Add(employee);
+            db.SaveChanges();
+            return Json(employee);
+        }
+
+        [HttpPost]
+        public JsonResult UpdateEmployee(Employee employee)
         {
             db.Entry(employee).State = EntityState.Modified;
             db.SaveChanges();
             return Json(employee);
         }
 
+        [HttpPost]
+        public JsonResult DeleteEmployee(int id)
+        {
+            var employee = db.Employees.Find(id);
+            if (employee != null)
+            {
+                db.Employees.Remove(employee);
+                db.SaveChanges();
+            }
+            return Json(employee);
+        }
 
 
         public ActionResult About()
