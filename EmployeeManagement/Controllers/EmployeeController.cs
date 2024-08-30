@@ -12,25 +12,20 @@ namespace EmployeeManagement.Controllers
     {
         private readonly EmployeeDbContext db = new EmployeeDbContext();
 
+        //Mostrar vista principal
         public ActionResult Index()
         {
             return View();
         }
 
+        //Traer todos los empleados de la base de datos en un array
         public JsonResult GetEmployees()
         {
-            try
-            {
-                List<Employee> employees = db.Employees.ToList();
-                return Json(employees, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                // Return the exception message for debugging
-                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
+            List<Employee> employees = db.Employees.ToList();
+            return Json(employees, JsonRequestBehavior.AllowGet);
         }
 
+        //Guardar un empleado nuevo
         [HttpPost]
         public JsonResult AddEmployee(Employee employee)
         {
@@ -39,6 +34,7 @@ namespace EmployeeManagement.Controllers
             return Json(employee);
         }
 
+        //Actualizar un empleado
         [HttpPost]
         public JsonResult UpdateEmployee(Employee employee)
         {
@@ -46,7 +42,7 @@ namespace EmployeeManagement.Controllers
             db.SaveChanges();
             return Json(employee);
         }
-
+        //Eliminar un empleado
         [HttpPost]
         public JsonResult DeleteEmployee(int id)
         {
@@ -57,21 +53,6 @@ namespace EmployeeManagement.Controllers
                 db.SaveChanges();
             }
             return Json(employee);
-        }
-
-
-        public ActionResult About()
-        {
-            ViewBag.Message = "Your application description page.";
-
-            return View();
-        }
-
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
-
-            return View();
         }
     }
 }
